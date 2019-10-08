@@ -102,12 +102,39 @@ elif args['grantAccessFolder']:
             },
             'action': {
                 'op': 'grant',
-                'id': 1,
+                'id': args['id'],
                 'grant': {
                     'gt': 'usr',
-                    'inh': args['id'],
+                    'inh': 1,
                     'd': args['for'],
                     'perm': 'rwidx'
+                }
+            }
+        },
+        'urn:zimbraMail'
+    )
+
+    info_response = comm.send_request(info_request)
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+
+    printer.pprint(info_response.get_response()['FolderActionResponse'])
+
+    info_request = comm.gen_request(token=usr_token)
+
+    info_request.add_request(
+        'SendShareNotificationRequest',
+        {
+            'account': {
+              'by': 'name',
+                '_content': args['email']
+            },
+            'item': {
+                'id': args['id'],
+                'e': {
+                    'a': args['for']
                 }
             }
         },
@@ -119,7 +146,8 @@ elif args['grantAccessFolder']:
         print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
         exit(-1)
 
-    printer.pprint(info_response.get_response()['FolderActionResponse'])
+    printer.pprint(info_response.get_response()['SendShareNotificationResponse'])
+
 
 ## FIXME getAccountInfo ne fonctionne pas
 elif args['getAccountInfo']:
