@@ -29,6 +29,7 @@ printer = pprint.PrettyPrinter(indent=4)
 # Configuration des paramètres d'appel
 epilog = "Exemples d'appel :\n" + \
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMailCount --email=p-salaun@univ-rennes1.fr --folder='/inbox'\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getFolder --email=p-salaun@univ-rennes1.fr --folder='/'\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --grantAccessFolder --email=p-salaun@univ-rennes1.fr --id=2 --for=olivier.salaun@univ-rennes1.fr\n"
 
 parser = argparse.ArgumentParser(description="Exploitation des boîtes mail sur la plateforme Partage", epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -38,6 +39,7 @@ parser.add_argument('--for', metavar='anne.guernic@univ-rennes1.fr', help="adres
 parser.add_argument('--folder', metavar='/inbox', help="dossier de l'utilisateur")
 parser.add_argument('--id', metavar='2', help="Identifiant d'un objet (dossier)")
 parser.add_argument('--getMailCount', action='store_const', const=True, help="Nombre de mails dans un dossier")
+parser.add_argument('--getFolder', action='store_const', const=True, help="Infos sur un dossier mail")
 parser.add_argument('--getAccountInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
 parser.add_argument('--grantAccessFolder', action='store_const', const=True, help="Donne accès à un dossier")
 
@@ -156,7 +158,7 @@ elif args['getAccountInfo']:
         logger.error("Paramètre manquant : email")
         raise Exception("Paramètre manquant : email")
 
-    (comm, usr_token) = zimbra_auth(conf['soap_admin_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
 
     info_request = comm.gen_request(token=usr_token)
     info_request.add_request(
@@ -177,3 +179,31 @@ elif args['getAccountInfo']:
 
     printer.pprint(info_response.get_response()['GetAccountResponse'])
 
+elif args['getFolder']:
+
+    if not args['email']:
+        logger.error("Paramètre manquant : email")
+        raise Exception("Paramètre manquant : email")
+
+    if not args['folder']:
+        logger.error("Paramètre manquant : folder")
+        raise Exception("Paramètre manquant : folder")
+
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+
+    info_request = comm.gen_request(token=usr_token)
+    info_request.add_request(
+        'GetFolderRequest',
+        {
+            'folder': {
+                'path': args['folder']
+            }
+        },
+        'urn:zimbraMail'
+    )
+    info_response = comm.send_request(info_request)
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+    printer.pprint(info_response.get_response()['GetFolderResponse']['folder'])
