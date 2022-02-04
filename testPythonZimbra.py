@@ -30,6 +30,7 @@ printer = pprint.PrettyPrinter(indent=4)
 epilog = "Exemples d'appel :\n" + \
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMailCount --email=p-salaun@univ-rennes1.fr --folder='/inbox'\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getFolder --email=p-salaun@univ-rennes1.fr --folder='/' -depth=0\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getRights --email=p-salaun@univ-rennes1.fr --right=sendAs\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --grantAccessFolder --email=p-salaun@univ-rennes1.fr --id=2 --for=olivier.salaun@univ-rennes1.fr\n"
 
 parser = argparse.ArgumentParser(description="Exploitation des boîtes mail sur la plateforme Partage", epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -43,6 +44,9 @@ parser.add_argument('--getMailCount', action='store_const', const=True, help="No
 parser.add_argument('--getFolder', action='store_const', const=True, help="Infos sur un dossier mail")
 parser.add_argument('--getAccountInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
 parser.add_argument('--grantAccessFolder', action='store_const', const=True, help="Donne accès à un dossier")
+parser.add_argument('--getPrefs', action='store_const', const=True, help="Consultation des préférences utilisateur")
+parser.add_argument('--getRights', action='store_const', const=True, help="Consultation des droits sendAs et sendOnBehalfOf")
+parser.add_argument('--right', metavar='sendAs', help="tpe de droit (sendAs ou SendOnBehalfOf)")
 
 
 args = vars(parser.parse_args())
@@ -213,3 +217,60 @@ elif args['getFolder']:
         print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
         exit(-1)
     printer.pprint(info_response.get_response()['GetFolderResponse']['folder'])
+
+elif args['getPrefs']:
+
+    if not args['email']:
+        print("Paramètre manquant : email")
+        raise Exception("Paramètre manquant : email")
+
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+
+    info_request = comm.gen_request(token=usr_token)
+    info_request.add_request(
+        'GetPrefsRequest',
+        {
+            'pref': {
+                'name': 'zimbraPrefPasswordRecoveryAddress',
+            }
+        },
+        'urn:zimbraAccount'
+    )
+    info_response = comm.send_request(info_request)
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+    printer.pprint(info_response.get_response()['GetPrefsResponse'])
+
+elif args['getRights']:
+
+    if not args['email']:
+        print("Paramètre manquant : email")
+        raise Exception("Paramètre manquant : email")
+
+    if not args['right']:
+        print("Paramètre manquant : right")
+        raise Exception("Paramètre manquant : right")
+
+
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+
+    info_request = comm.gen_request(token=usr_token)
+    info_request.add_request(
+        'GetRightsRequest',
+        {
+            'ace': [
+                {
+                    'right': args['right']
+                }
+            ]
+        },
+        'urn:zimbraAccount'
+    )
+    info_response = comm.send_request(info_request)
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+    printer.pprint(info_response.get_response()['GetRightsResponse'])
