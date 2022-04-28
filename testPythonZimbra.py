@@ -24,7 +24,7 @@ def zimbra_auth(url, preauth_key, email):
     return (comm, usr_token)
 
 
-printer = pprint.PrettyPrinter(indent=4)
+printer = pprint.PrettyPrinter(indent=4, width=500)
 
 # Configuration des paramètres d'appel
 epilog = "Exemples d'appel :\n" + \
