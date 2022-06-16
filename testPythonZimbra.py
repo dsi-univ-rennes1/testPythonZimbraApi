@@ -36,8 +36,10 @@ epilog = "Exemples d'appel :\n" + \
 parser = argparse.ArgumentParser(description="Exploitation des boîtes mail sur la plateforme Partage", epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('--conf', required=True, metavar='ur1-prod-zimbra.json', help="fichier de configuration JSON")
 parser.add_argument('--email', metavar='jean.kermarrec@univ-rennes1.fr', help="adrese email de l'utilisateur")
+parser.add_argument('--domain', metavar='univ-rennes1.fr', help="domaine de messagerie")
 parser.add_argument('--for', metavar='anne.guernic@univ-rennes1.fr', help="adrese email de l'autre utilisateur")
 parser.add_argument('--folder', metavar='/inbox', help="dossier de l'utilisateur")
+parser.add_argument('--type', metavar='dom', help="type de droits")
 parser.add_argument('--depth', metavar='0', help="profondeur de la recherche")
 parser.add_argument('--id', metavar='2', help="Identifiant d'un objet (dossier)")
 parser.add_argument('--getMailCount', action='store_const', const=True, help="Nombre de mails dans un dossier")
@@ -46,6 +48,7 @@ parser.add_argument('--getAccountInfo', action='store_const', const=True, help="
 parser.add_argument('--grantAccessFolder', action='store_const', const=True, help="Donne accès à un dossier")
 parser.add_argument('--getPrefs', action='store_const', const=True, help="Consultation des préférences utilisateur")
 parser.add_argument('--getRights', action='store_const', const=True, help="Consultation des droits sendAs et sendOnBehalfOf")
+parser.add_argument('--grantRights', action='store_const', const=True, help="Modif droits")
 parser.add_argument('--right', metavar='sendAs', help="tpe de droit (sendAs ou SendOnBehalfOf)")
 
 
@@ -274,3 +277,69 @@ elif args['getRights']:
         print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
         exit(-1)
     printer.pprint(info_response.get_response()['GetRightsResponse'])
+
+elif args['grantRights']:
+
+    if not args['email']:
+        print("Paramètre manquant : email")
+        raise Exception("Paramètre manquant : email")
+
+    if not args['type']:
+        print("Paramètre manquant : type")
+        raise Exception("Paramètre manquant : type")
+
+    if not args['right']:
+        print("Paramètre manquant : right")
+        raise Exception("Paramètre manquant : right")
+
+    if not args['domain']:
+        print("Paramètre manquant : domain")
+        raise Exception("Paramètre manquant : domain")
+
+
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+
+    info_request = comm.gen_request(token=usr_token)
+
+    # On commence par révoquer les droits publics (zid="99999999-9999-9999-9999-999999999999")
+    info_request.add_request(
+        'RevokeRightsRequest',
+        {
+            'ace': [
+                {
+                    'gt': 'pub',
+                    'zid': "99999999-9999-9999-9999-999999999999",
+                    'right': args['right']
+                }
+            ]
+        },
+        'urn:zimbraAccount'
+    )
+    info_response = comm.send_request(info_request)
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+    printer.pprint(info_response.get_response()['RevokeRightsResponse'])
+
+    # Ajout droits
+    info_request = comm.gen_request(token=usr_token)
+    info_request.add_request(
+        'GrantRightsRequest',
+        {
+            'ace': [
+                {
+                    'gt': args['type'],
+                    'd': args['domain'],
+                    'right': args['right']
+                }
+            ]
+        },
+        'urn:zimbraAccount'
+    )
+    info_response = comm.send_request(info_request)
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+    printer.pprint(info_response.get_response()['GrantRightsResponse'])
