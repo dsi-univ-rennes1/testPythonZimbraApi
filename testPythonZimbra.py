@@ -29,6 +29,7 @@ printer = pprint.PrettyPrinter(indent=4, width=500)
 # Configuration des paramètres d'appel
 epilog = "Exemples d'appel :\n" + \
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMailCount --email=p-salaun@univ-rennes1.fr --folder='/inbox'\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMsg --email=p-salaun@univ-rennes1.fr --id=12567\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getFolder --email=p-salaun@univ-rennes1.fr --folder='/' -depth=0\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getRights --email=p-salaun@univ-rennes1.fr --right=sendAs\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --grantAccessFolder --email=p-salaun@univ-rennes1.fr --id=2 --for=olivier.salaun@univ-rennes1.fr\n"
