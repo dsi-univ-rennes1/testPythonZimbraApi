@@ -351,11 +351,6 @@ elif args['grantRights']:
         print("Paramètre manquant : right")
         raise Exception("Paramètre manquant : right")
 
-    if not args['domain']:
-        print("Paramètre manquant : domain")
-        raise Exception("Paramètre manquant : domain")
-
-
     (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
 
     info_request = comm.gen_request(token=usr_token)
@@ -383,19 +378,42 @@ elif args['grantRights']:
 
     # Ajout droits
     info_request = comm.gen_request(token=usr_token)
-    info_request.add_request(
-        'GrantRightsRequest',
-        {
-            'ace': [
-                {
-                    'gt': args['type'],
-                    'd': args['domain'],
-                    'right': args['right']
-                }
-            ]
-        },
-        'urn:zimbraAccount'
-    )
+    if args['type'] == "usr":
+        if not args['for']:
+            print("Paramètre manquant : for")
+            raise Exception("Paramètre manquant : for")
+
+        info_request.add_request(
+            'GrantRightsRequest',
+            {
+                'ace': [
+                    {
+                        'gt': args['type'],
+                        'd': args['for'],
+                        'right': args['right']
+                    }
+                ]
+            },
+            'urn:zimbraAccount'
+        )
+    else:
+        if not args['domain']:
+            print("Paramètre manquant : domain")
+            raise Exception("Paramètre manquant : domain")
+
+        info_request.add_request(
+            'GrantRightsRequest',
+            {
+                'ace': [
+                    {
+                        'gt': args['type'],
+                        'd': args['domain'],
+                        'right': args['right']
+                    }
+                ]
+            },
+            'urn:zimbraAccount'
+        )
     info_response = comm.send_request(info_request)
 
     if info_response.is_fault():
