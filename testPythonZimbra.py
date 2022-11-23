@@ -47,6 +47,7 @@ parser.add_argument('--getMailCount', action='store_const', const=True, help="No
 parser.add_argument('--getMsg', action='store_const', const=True, help="Accès à un message")
 parser.add_argument('--getFolder', action='store_const', const=True, help="Infos sur un dossier mail")
 parser.add_argument('--getAccountInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
+parser.add_argument('--getInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
 parser.add_argument('--grantAccessFolder', action='store_const', const=True, help="Donne accès à un dossier")
 parser.add_argument('--getPrefs', action='store_const', const=True, help="Consultation des préférences utilisateur")
 parser.add_argument('--getRights', action='store_const', const=True, help="Consultation des droits sendAs et sendOnBehalfOf")
@@ -187,6 +188,30 @@ elif args['getAccountInfo']:
         exit(-1)
 
     printer.pprint(info_response.get_response()['GetAccountInfoResponse'])
+
+elif args['getInfo']:
+
+    if not args['email']:
+        print("Paramètre manquant : email")
+        raise Exception("Paramètre manquant : email")
+
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+
+    info_request = comm.gen_request(token=usr_token)
+    info_request.add_request(
+        'GetInfoRequest',
+        {
+
+        },
+        'urn:zimbraAccount'
+    )
+    info_response = comm.send_request(info_request)
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+
+    printer.pprint(info_response.get_response()['GetInfoResponse'])
 
 elif args['getFolder']:
 
