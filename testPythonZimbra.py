@@ -161,7 +161,6 @@ elif args['grantAccessFolder']:
     printer.pprint(info_response.get_response()['SendShareNotificationResponse'])
 
 
-## FIXME getAccountInfo ne fonctionne pas
 elif args['getAccountInfo']:
 
     if not args['email']:
@@ -172,14 +171,14 @@ elif args['getAccountInfo']:
 
     info_request = comm.gen_request(token=usr_token)
     info_request.add_request(
-        'GetAccountRequest',
+        'GetAccountInfoRequest',
         {
             'account': {
                 'by': 'name',
                 '_content': args['email']
             }
         },
-        'urn:zimbraAdmin'
+        'urn:zimbraAccount'
     )
     info_response = comm.send_request(info_request)
 
@@ -187,7 +186,7 @@ elif args['getAccountInfo']:
         print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
         exit(-1)
 
-    printer.pprint(info_response.get_response()['GetAccountResponse'])
+    printer.pprint(info_response.get_response()['GetAccountInfoResponse'])
 
 elif args['getFolder']:
 
