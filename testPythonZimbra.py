@@ -43,6 +43,7 @@ parser.add_argument('--folder', metavar='/inbox', help="dossier de l'utilisateur
 parser.add_argument('--type', metavar='dom', help="type de droits")
 parser.add_argument('--depth', metavar='0', help="profondeur de la recherche")
 parser.add_argument('--id', metavar='2', help="Identifiant d'un objet (dossier)")
+parser.add_argument('--display', metavar='2', help="Nom affiché (pour From)")
 parser.add_argument('--getMailCount', action='store_const', const=True, help="Nombre de mails dans un dossier")
 parser.add_argument('--getMsg', action='store_const', const=True, help="Accès à un message")
 parser.add_argument('--getFolder', action='store_const', const=True, help="Infos sur un dossier mail")
@@ -53,6 +54,10 @@ parser.add_argument('--getPrefs', action='store_const', const=True, help="Consul
 parser.add_argument('--getRights', action='store_const', const=True, help="Consultation des droits sendAs et sendOnBehalfOf")
 parser.add_argument('--grantRights', action='store_const', const=True, help="Modif droits")
 parser.add_argument('--right', metavar='sendAs', help="tpe de droit (sendAs ou SendOnBehalfOf)")
+parser.add_argument('--createIdentity', action='store_const', const=True, help="Création d'un avatar")
+parser.add_argument('--modifyIdentity', action='store_const', const=True, help="Modification d'un avatar")
+parser.add_argument('--deleteIdentity', action='store_const', const=True, help="Suppression d'un avatar")
+parser.add_argument('--getIdentities', action='store_const', const=True, help="Consultation des avatars")
 
 
 args = vars(parser.parse_args())
@@ -420,3 +425,174 @@ elif args['grantRights']:
         print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
         exit(-1)
     printer.pprint(info_response.get_response()['GrantRightsResponse'])
+
+elif args['createIdentity']:
+
+    if not args['email']:
+        print("Paramètre manquant : email")
+        raise Exception("Paramètre manquant : email")
+
+    if not args['for']:
+        print("Paramètre manquant : for")
+        raise Exception("Paramètre manquant : for")
+
+    if not args['id']:
+        print("Paramètre manquant : id")
+        raise Exception("Paramètre manquant : id")
+
+    if not args['display']:
+        print("Paramètre manquant : display")
+        raise Exception("Paramètre manquant : display")
+
+
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+
+    # On utilise le format XML car ça marche pas en JSON pour createIdentity
+    info_request = comm.gen_request(token=usr_token,request_type="xml")
+
+    # On commence par révoquer les droits publics (zid="99999999-9999-9999-9999-999999999999")
+
+    info_request.add_request(
+        'CreateIdentityRequest',
+        {
+            'identity': {
+                'name': args['id'],
+                'a':
+                    [
+                        {
+                            'name': 'zimbraPrefIdentityName',
+                            '_content': args['id']
+                        },
+                        {
+                            'name': 'zimbraPrefFromDisplay',
+                            '_content': args['display']
+                        },
+                        {
+                            'name': 'zimbraPrefFromAddress',
+                            '_content': args['for']
+                        }
+                ]
+            }
+        },
+        'urn:zimbraAccount'
+    )
+    info_response = comm.send_request(info_request)
+    #printer.pprint(info_request.get_request())
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+    printer.pprint(info_response.get_response()['CreateIdentityResponse'])
+
+elif args['modifyIdentity']:
+
+    if not args['email']:
+        print("Paramètre manquant : email")
+        raise Exception("Paramètre manquant : email")
+
+    if not args['for']:
+        print("Paramètre manquant : for")
+        raise Exception("Paramètre manquant : for")
+
+    if not args['id']:
+        print("Paramètre manquant : id")
+        raise Exception("Paramètre manquant : id")
+
+    if not args['display']:
+        print("Paramètre manquant : display")
+        raise Exception("Paramètre manquant : display")
+
+
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+
+    info_request = comm.gen_request(token=usr_token,request_type="xml")
+
+    info_request.add_request(
+        'ModifyIdentityRequest',
+        {
+            'identity': {
+                'name': args['id'],
+                'a':
+                [
+                    {
+                         'name': 'zimbraPrefIdentityName',
+                         '_content': args['id']
+                     },
+                     {
+                         'name': 'zimbraPrefFromDisplay',
+                         '_content': args['display']
+                     },
+                    {
+                        'name': 'zimbraPrefFromAddress',
+                        '_content': args['for']
+                    }
+                ]
+            }
+        },
+        'urn:zimbraAccount'
+    )
+    info_response = comm.send_request(info_request)
+    #print(str(info_request))
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+    printer.pprint(info_response.get_response()['ModifyIdentityResponse'])
+
+elif args['getIdentities']:
+
+    if not args['email']:
+        print("Paramètre manquant : email")
+        raise Exception("Paramètre manquant : email")
+
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+
+    info_request = comm.gen_request(token=usr_token)
+
+    # On commence par révoquer les droits publics (zid="99999999-9999-9999-9999-999999999999")
+    info_request.add_request(
+        'GetIdentitiesRequest',
+        {
+
+        },
+        'urn:zimbraAccount'
+    )
+    info_response = comm.send_request(info_request)
+    #print(str(info_request))
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+    printer.pprint(info_response.get_response()['GetIdentitiesResponse'])
+
+elif args['deleteIdentity']:
+
+    if not args['email']:
+        print("Paramètre manquant : email")
+        raise Exception("Paramètre manquant : email")
+
+    if not args['id']:
+        print("Paramètre manquant : id")
+        raise Exception("Paramètre manquant : id")
+
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+
+    info_request = comm.gen_request(token=usr_token)
+
+    # On commence par révoquer les droits publics (zid="99999999-9999-9999-9999-999999999999")
+    info_request.add_request(
+        'DeleteIdentityRequest',
+        {
+            'identity': {
+                'name': args['id']
+            }
+        },
+        'urn:zimbraAccount'
+    )
+    info_response = comm.send_request(info_request)
+    #print(str(info_request))
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+    printer.pprint(info_response.get_response()['DeleteIdentityResponse'])
