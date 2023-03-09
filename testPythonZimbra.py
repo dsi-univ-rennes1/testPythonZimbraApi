@@ -250,7 +250,7 @@ elif args['getFolder']:
     if info_response.is_fault():
         print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
         exit(-1)
-    printer.pprint(info_response.get_response()['GetFolderResponse']['folder'])
+    print(json.dumps(info_response.get_response()['GetFolderResponse']['folder']))
 
 elif args['getPrefs']:
 
@@ -307,7 +307,7 @@ elif args['getRights']:
     if info_response.is_fault():
         print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
         exit(-1)
-    printer.pprint(info_response.get_response()['GetRightsResponse'])
+    print(json.dumps(info_response.get_response()['GetRightsResponse']))
 
 elif args['getMsg']:
 
@@ -459,14 +459,14 @@ elif args['createIdentity']:
                 'name': args['id'],
                 'a':
                     [
-                        {
-                            'name': 'zimbraPrefIdentityName',
-                            '_content': args['id']
-                        },
-                        {
-                            'name': 'zimbraPrefFromDisplay',
-                            '_content': args['display']
-                        },
+                        # {
+                        #     'name': 'zimbraPrefIdentityName',
+                        #     '_content': args['id']
+                        # },
+                        # {
+                        #     'name': 'zimbraPrefFromDisplay',
+                        #     '_content': args['display']
+                        # },
                         {
                             'name': 'zimbraPrefFromAddress',
                             '_content': args['for']
