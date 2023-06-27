@@ -58,6 +58,8 @@ parser.add_argument('--createIdentity', action='store_const', const=True, help="
 parser.add_argument('--modifyIdentity', action='store_const', const=True, help="Modification d'un avatar")
 parser.add_argument('--deleteIdentity', action='store_const', const=True, help="Suppression d'un avatar")
 parser.add_argument('--getIdentities', action='store_const', const=True, help="Consultation des avatars")
+parser.add_argument('--search', action='store_const', const=True, help="Liste des mails dans un dossier")
+parser.add_argument('--offset', metavar='0', help="Offest (pour recherche)")
 
 
 args = vars(parser.parse_args())
@@ -72,6 +74,11 @@ if args['getMailCount']:
         logger.error("Paramètre manquant : email")
         raise Exception("Paramètre manquant : email")
 
+    if not args['folder']:
+        logger.error("Paramètre manquant : folder")
+        raise Exception("Paramètre manquant : folder")
+
+
     (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
 
     info_request = comm.gen_request(token=usr_token)
@@ -79,7 +86,7 @@ if args['getMailCount']:
         'GetFolderRequest',
         {
             'folder': {
-                'path': '/inbox'
+                'path': args['folder']
             }
         },
         'urn:zimbraMail'
@@ -90,7 +97,7 @@ if args['getMailCount']:
         print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
         exit(-1)
 
-    print ("Nombre de mails dans Inbox : %s" % info_response.get_response()['GetFolderResponse']['folder']['n'])
+    print ("Nombre de mails dans %s : %s" % (args['folder'], info_response.get_response()['GetFolderResponse']['folder']['n']))
 
 elif args['grantAccessFolder']:
 
@@ -251,6 +258,42 @@ elif args['getFolder']:
         print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
         exit(-1)
     print(json.dumps(info_response.get_response()['GetFolderResponse']['folder']))
+
+
+elif args['search']:
+
+    if not args['email']:
+        print("Paramètre manquant : email")
+        raise Exception("Paramètre manquant : email")
+
+    if not args['folder']:
+        print("Paramètre manquant : folder")
+        raise Exception("Paramètre manquant : folder")
+
+    offset = 0
+    if args['offset']:
+        offset= args['offset']
+
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+
+    info_request = comm.gen_request(token=usr_token)
+    info_request.add_request(
+        'SearchRequest',
+        {
+            'query': "-in:"+args['folder'],
+            'inDumpster': 1,
+            'types': "message",
+            'limit': 10000,
+            'offset': offset
+        },
+        'urn:zimbraMail'
+    )
+    info_response = comm.send_request(info_request)
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+    print(json.dumps(info_response.get_response()['SearchResponse']))
 
 elif args['getPrefs']:
 
