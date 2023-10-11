@@ -280,7 +280,7 @@ elif args['search']:
     info_request.add_request(
         'SearchRequest',
         {
-            'query': "-in:"+args['folder'],
+            'query': '-in:"'+args['folder']+'"',
             'inDumpster': 1,
             'types': "message",
             'limit': 10000,
