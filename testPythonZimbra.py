@@ -66,6 +66,7 @@ parser.add_argument('--deleteIdentity', action='store_const', const=True, help="
 parser.add_argument('--getIdentities', action='store_const', const=True, help="Consultation des avatars")
 parser.add_argument('--search', action='store_const', const=True, help="Liste des mails dans un dossier")
 parser.add_argument('--offset', metavar='0', help="Offest (pour recherche)")
+parser.add_argument('--limit', metavar='0', help="Limite (pour recherche)")
 
 
 args = vars(parser.parse_args())
@@ -276,6 +277,10 @@ elif args['search']:
         print("Paramètre manquant : folder")
         raise Exception("Paramètre manquant : folder")
 
+    limit=100
+    if args['limit']:
+        limit = args['limit']
+
     offset = 0
     if args['offset']:
         offset= args['offset']
@@ -289,7 +294,7 @@ elif args['search']:
             'query': 'in:"'+args['folder']+'"',
             'inDumpster': 1,
             'types': "message",
-            'limit': 100,
+            'limit': limit,
             'offset': offset
         },
         'urn:zimbraMail'
