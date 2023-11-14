@@ -11,9 +11,9 @@ import pprint
 import json
 
 # Authentification auprès du serveur Zimbra
-def zimbra_auth(url, preauth_key, email):
+def zimbra_auth(url, preauth_key, email, timeout=5):
 
-    comm = Communication(url)
+    comm = Communication(url=url, timeout=timeout)
 
     usr_token = auth.authenticate(
         url,
@@ -79,7 +79,7 @@ if args['getMailCount']:
         raise Exception("Paramètre manquant : folder")
 
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
     info_request.add_request(
@@ -113,7 +113,7 @@ elif args['grantAccessFolder']:
         print("Paramètre manquant : id")
         raise Exception("Paramètre manquant : id")
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
 
@@ -180,7 +180,7 @@ elif args['getAccountInfo']:
         print("Paramètre manquant : email")
         raise Exception("Paramètre manquant : email")
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
     info_request.add_request(
@@ -207,7 +207,7 @@ elif args['getInfo']:
         print("Paramètre manquant : email")
         raise Exception("Paramètre manquant : email")
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
     info_request.add_request(
@@ -239,7 +239,7 @@ elif args['getFolder']:
     if args['depth']:
         depth = int(args['depth'])
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
     info_request.add_request(
@@ -274,16 +274,16 @@ elif args['search']:
     if args['offset']:
         offset= args['offset']
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
     info_request.add_request(
         'SearchRequest',
         {
-            'query': '-in:"'+args['folder']+'"',
+            'query': 'in:"'+args['folder']+'"',
             'inDumpster': 1,
             'types': "message",
-            'limit': 10000,
+            'limit': 100,
             'offset': offset
         },
         'urn:zimbraMail'
@@ -301,7 +301,7 @@ elif args['getPrefs']:
         print("Paramètre manquant : email")
         raise Exception("Paramètre manquant : email")
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
     info_request.add_request(
@@ -331,7 +331,7 @@ elif args['getRights']:
         raise Exception("Paramètre manquant : right")
 
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
     info_request.add_request(
@@ -363,7 +363,7 @@ elif args['getMsg']:
         raise Exception("Paramètre manquant : id")
 
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
     info_request.add_request(
@@ -399,7 +399,7 @@ elif args['grantRights']:
         print("Paramètre manquant : right")
         raise Exception("Paramètre manquant : right")
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
 
@@ -488,7 +488,7 @@ elif args['createIdentity']:
         raise Exception("Paramètre manquant : display")
 
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     # On utilise le format XML car ça marche pas en JSON pour createIdentity
     info_request = comm.gen_request(token=usr_token,request_type="xml")
@@ -546,7 +546,7 @@ elif args['modifyIdentity']:
         raise Exception("Paramètre manquant : display")
 
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token,request_type="xml")
 
@@ -588,7 +588,7 @@ elif args['getIdentities']:
         print("Paramètre manquant : email")
         raise Exception("Paramètre manquant : email")
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
 
@@ -618,7 +618,7 @@ elif args['deleteIdentity']:
         print("Paramètre manquant : id")
         raise Exception("Paramètre manquant : id")
 
-    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'])
+    (comm, usr_token) = zimbra_auth(conf['soap_service_url'], conf['preauth_key'], args['email'], conf['timeout'])
 
     info_request = comm.gen_request(token=usr_token)
 
