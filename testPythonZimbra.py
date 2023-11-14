@@ -64,8 +64,9 @@ parser.add_argument('--createIdentity', action='store_const', const=True, help="
 parser.add_argument('--modifyIdentity', action='store_const', const=True, help="Modification d'un avatar")
 parser.add_argument('--deleteIdentity', action='store_const', const=True, help="Suppression d'un avatar")
 parser.add_argument('--getIdentities', action='store_const', const=True, help="Consultation des avatars")
-parser.add_argument('--search', action='store_const', const=True, help="Liste des mails dans un dossier")
-parser.add_argument('--offset', metavar='0', help="Offest (pour recherche)")
+parser.add_argument('--search', action='store_const', const=True, help="Liste des mails dans un dossier (si --folder spécifié) ou recherche (si --query spécifié)")
+parser.add_argument('--query', metavar='0', help="requête (pour recherche)")
+parser.add_argument('--offset', metavar='0', help="Offset (pour recherche)")
 parser.add_argument('--limit', metavar='0', help="Limite (pour recherche)")
 
 
@@ -273,9 +274,9 @@ elif args['search']:
         print("Paramètre manquant : email")
         raise Exception("Paramètre manquant : email")
 
-    if not args['folder']:
-        print("Paramètre manquant : folder")
-        raise Exception("Paramètre manquant : folder")
+    if not (args['folder'] or args['query']):
+        print("Paramètre manquant : folder ou query")
+        raise Exception("Paramètre manquant : folder or query")
 
     limit=100
     if args['limit']:
@@ -285,13 +286,19 @@ elif args['search']:
     if args['offset']:
         offset= args['offset']
 
+    query = ""
+    if args['query']:
+        query = args['query']
+    else:
+        query = 'in:"'+args['folder']+'"'
+
     (comm, usr_token) = zimbra_auth(conf, args['email'])
 
     info_request = comm.gen_request(token=usr_token)
     info_request.add_request(
         'SearchRequest',
         {
-            'query': 'in:"'+args['folder']+'"',
+            'query': query,
             'inDumpster': 1,
             'types': "message",
             'limit': limit,
