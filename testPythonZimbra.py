@@ -38,6 +38,10 @@ epilog = "Exemples d'appel :\n" + \
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMsg --email=p-salaun@univ-rennes1.fr --id=12567\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getFolder --email=p-salaun@univ-rennes1.fr --folder='/' -depth=0\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getRights --email=p-salaun@univ-rennes1.fr --right=sendAs\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=olivier.salaun@univ-rennes1.fr --folder=Inbox\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=olivier.salaun@univ-rennes1.fr --query='from:cecile.vincent@univ-avignon.fr'\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=olivier.salaun@univ-rennes1.fr --query='#X-Mailer:\"PHPMailer 6.0.2\"'\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --getMsg --email=olivier.salaun@univ-rennes1.fr --id=962266\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --grantAccessFolder --email=p-salaun@univ-rennes1.fr --id=2 --for=olivier.salaun@univ-rennes1.fr\n"
 
 parser = argparse.ArgumentParser(description="Exploitation des boîtes mail sur la plateforme Partage", epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -52,6 +56,7 @@ parser.add_argument('--id', metavar='2', help="Identifiant d'un objet (dossier)"
 parser.add_argument('--display', metavar='2', help="Nom affiché (pour From)")
 parser.add_argument('--getMailCount', action='store_const', const=True, help="Nombre de mails dans un dossier")
 parser.add_argument('--getMsg', action='store_const', const=True, help="Accès à un message")
+parser.add_argument('--moveMsg', action='store_const', const=True, help="Déplacer un message dans un dossier")
 parser.add_argument('--getFolder', action='store_const', const=True, help="Infos sur un dossier mail")
 parser.add_argument('--getAccountInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
 parser.add_argument('--getInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
@@ -401,6 +406,41 @@ elif args['getMsg']:
         exit(-1)
     printer.pprint(info_response.get_response()['GetMsgResponse'])
 
+elif args['moveMsg']:
+
+    if not args['email']:
+        print("Paramètre manquant : email")
+        raise Exception("Paramètre manquant : email")
+
+    if not args['id']:
+        print("Paramètre manquant : id")
+        raise Exception("Paramètre manquant : id")
+
+    if not args['folder']:
+        print("Paramètre manquant : folder")
+        raise Exception("Paramètre manquant : folder")
+
+    (comm, usr_token) = zimbra_auth(conf, args['email'])
+
+    info_request = comm.gen_request(token=usr_token)
+    info_request.add_request(
+        'ConvActionRequest',
+        {
+            'action': [
+                {
+                    'op': 'move,',
+                    'id': args['id']
+                }
+            ]
+        },
+        'urn:zimbraMail'
+    )
+    info_response = comm.send_request(info_request)
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+    printer.pprint(info_response.get_response()['ConvActionResponse'])
 
 elif args['grantRights']:
 
