@@ -477,7 +477,7 @@ elif args['createFolder']:
 
     request_data = {
                     'folder': {
-                        'name': folder,
+                        'name': args['folder'],
                         'view': 'message'
                     }
                 }
