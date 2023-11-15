@@ -56,6 +56,7 @@ epilog = "Exemples d'appel :\n" + \
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=olivier.salaun@univ-rennes1.fr --query='from:cecile.vincent@univ-avignon.fr'\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=olivier.salaun@univ-rennes1.fr --query='#X-Mailer:\"PHPMailer 6.0.2\"'\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --getMsg --email=olivier.salaun@univ-rennes1.fr --id=962266\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --moveMsg --email=olivier.salaun@univ-rennes1.fr --id=963827 --folder=8_Perso\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --grantAccessFolder --email=p-salaun@univ-rennes1.fr --id=2 --for=olivier.salaun@univ-rennes1.fr\n"
 
 parser = argparse.ArgumentParser(description="Exploitation des boîtes mail sur la plateforme Partage", epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -259,9 +260,6 @@ elif args['getRights']:
             logger.error("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
-    depth = 1
-    if args['depth']:
-        depth = int(args['depth'])
     request_data = {
             'ace': [
                 {
@@ -280,9 +278,6 @@ elif args['getMsg']:
             logger.error("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
-    depth = 1
-    if args['depth']:
-        depth = int(args['depth'])
     request_data = {
             'm': [
                 {
@@ -301,20 +296,30 @@ elif args['moveMsg']:
             logger.error("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
-    depth = 1
-    if args['depth']:
-        depth = int(args['depth'])
+     # Get folder ID
+    request_data = {
+        'folder': {
+            'path': args['folder']
+        }
+    }
+    info_response = zimbra_request('GetFolder', 'urn:zimbraMail', args['email'], request_data)
+
+    folder_id = info_response.get_response()['GetFolderResponse']['folder']['id']
+    #print("Folder "+folder_id)
+
+    # Move message to folder
     request_data = {
             'action': [
                 {
-                    'op': 'move,',
-                    'id': args['id']
+                    'op': 'move',
+                    'id': args['id'],
+                    'l': folder_id
                 }
             ]
         }
-    info_response = zimbra_request('ConvAction', 'urn:zimbraMail', args['email'], request_data)
+    info_response = zimbra_request('MsgAction', 'urn:zimbraMail', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['ConvActionResponse'])
+    printer.pprint(info_response.get_response()['MsgActionResponse'])
 
 elif args['grantRights']:
 
@@ -322,10 +327,6 @@ elif args['grantRights']:
         if not args[need]:
             logger.error("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
-
-    depth = 1
-    if args['depth']:
-        depth = int(args['depth'])
 
     # On commence par révoquer les droits publics (zid="99999999-9999-9999-9999-999999999999")
     request_data = {
