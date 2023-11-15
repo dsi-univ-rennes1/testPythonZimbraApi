@@ -73,6 +73,7 @@ parser.add_argument('--getMailCount', action='store_const', const=True, help="No
 parser.add_argument('--getMsg', action='store_const', const=True, help="Accès à un message")
 parser.add_argument('--moveMsg', action='store_const', const=True, help="Déplacer un message dans un dossier")
 parser.add_argument('--getFolder', action='store_const', const=True, help="Infos sur un dossier mail")
+parser.add_argument('--createFolder', action='store_const', const=True, help="Création d'un dossier mail")
 parser.add_argument('--getAccountInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
 parser.add_argument('--getInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
 parser.add_argument('--grantAccessFolder', action='store_const', const=True, help="Donne accès à un dossier")
@@ -466,3 +467,20 @@ elif args['deleteIdentity']:
     info_response = zimbra_request('DeleteIdentity', 'urn:zimbraAccount', args['email'], request_data)
 
     printer.pprint(info_response.get_response()['DeleteIdentityResponse'])
+
+elif args['createFolder']:
+
+    for need in ('email', 'folder'):
+        if not args[need]:
+            logger.error("Paramètre manquant : " + need)
+            raise Exception("Paramètre manquant : " + need)
+
+    request_data = {
+                    'folder': {
+                        'name': folder,
+                        'view': 'message'
+                    }
+                }
+    info_response = zimbra_request('CreateFolder', 'urn:zimbraMail', args['email'], request_data)
+
+    printer.pprint(info_response.get_response()['CreateFolderResponse'])
