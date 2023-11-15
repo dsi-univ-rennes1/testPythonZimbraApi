@@ -299,7 +299,6 @@ elif args['search']:
         'SearchRequest',
         {
             'query': query,
-            'inDumpster': 1,
             'types': "message",
             'limit': limit,
             'offset': offset
