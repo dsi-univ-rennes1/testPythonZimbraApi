@@ -30,6 +30,20 @@ def zimbra_auth(conf, email):
     return (comm, usr_token)
 
 
+def zimbra_request(zimbra_action, zimbra_namespace, email, request_data, request_type="json"):
+    (comm, usr_token) = zimbra_auth(conf, email)
+
+    info_request = comm.gen_request(token=usr_token)
+    info_request.add_request(
+        zimbra_action+'Request', request_data, zimbra_namespace)
+    info_response = comm.send_request(info_request)
+
+    if info_response.is_fault():
+        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
+        exit(-1)
+
+    return info_response
+
 printer = pprint.PrettyPrinter(indent=4, width=500)
 
 # Configuration des paramètres d'appel
@@ -83,57 +97,29 @@ with open(args['conf'], 'r') as conf_file:
 
 if args['getMailCount']:
 
-    if not args['email']:
-        logger.error("Paramètre manquant : email")
-        raise Exception("Paramètre manquant : email")
+    for need in ('email','folder'):
+        if not args[need]:
+            logger.error("Paramètre manquant : "+need)
+            raise Exception("Paramètre manquant : "+need)
 
-    if not args['folder']:
-        logger.error("Paramètre manquant : folder")
-        raise Exception("Paramètre manquant : folder")
-
-
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
-    info_request.add_request(
-        'GetFolderRequest',
-        {
-            'folder': {
+    request_data = {
+        'folder': {
                 'path': args['folder']
             }
-        },
-        'urn:zimbraMail'
-    )
-    info_response = comm.send_request(info_request)
-
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
+    }
+    info_response = zimbra_request('GetFolder', 'urn:zimbraMail', args['email'], request_data)
 
     print ("Nombre de mails dans %s : %s" % (args['folder'], info_response.get_response()['GetFolderResponse']['folder']['n']))
 
 elif args['grantAccessFolder']:
 
-    if not args['email']:
-        print("Paramètre manquant : email")
-        raise Exception("Paramètre manquant : email")
-
-    if not args['for']:
-        print("Paramètre manquant : for")
-        raise Exception("Paramètre manquant : for")
-
-    if not args['id']:
-        print("Paramètre manquant : id")
-        raise Exception("Paramètre manquant : id")
-
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
+    for need in ('email','for','id'):
+        if not args[need]:
+            logger.error("Paramètre manquant : "+need)
+            raise Exception("Paramètre manquant : "+need)
 
     # ID dossier = 1 (mailbox's root folder)
-    info_request.add_request(
-        'FolderActionRequest',
-        {
+    request_data = {
             'account': {
               'by': 'name',
                 '_content': args['email']
@@ -148,23 +134,12 @@ elif args['grantAccessFolder']:
                     'perm': 'rwidx'
                 }
             }
-        },
-        'urn:zimbraMail'
-    )
-
-    info_response = comm.send_request(info_request)
-
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
+        }
+    info_response = zimbra_request('FolderAction', 'urn:zimbraMail', args['email'], request_data)
 
     printer.pprint(info_response.get_response()['FolderActionResponse'])
 
-    info_request = comm.gen_request(token=usr_token)
-
-    info_request.add_request(
-        'SendShareNotificationRequest',
-        {
+    request_data = {
             'account': {
               'by': 'name',
                 '_content': args['email']
@@ -175,14 +150,8 @@ elif args['grantAccessFolder']:
                     'a': args['for']
                 }
             }
-        },
-        'urn:zimbraMail'
-    )
-    info_response = comm.send_request(info_request)
-
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
+        }
+    info_request = zimbra_request('SendShareNotification', 'urn:zimbraMail', args['email'], request_data)
 
     printer.pprint(info_response.get_response()['SendShareNotificationResponse'])
 
@@ -193,24 +162,13 @@ elif args['getAccountInfo']:
         print("Paramètre manquant : email")
         raise Exception("Paramètre manquant : email")
 
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
-    info_request.add_request(
-        'GetAccountInfoRequest',
-        {
+    request_data = {
             'account': {
                 'by': 'name',
                 '_content': args['email']
             }
-        },
-        'urn:zimbraAccount'
-    )
-    info_response = comm.send_request(info_request)
-
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
+        }
+    info_response = zimbra_request('GetAccountInfo', 'urn:zimbraAccount', args['email'], request_data)
 
     printer.pprint(info_response.get_response()['GetAccountInfoResponse'])
 
@@ -220,58 +178,30 @@ elif args['getInfo']:
         print("Paramètre manquant : email")
         raise Exception("Paramètre manquant : email")
 
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
-    info_request.add_request(
-        'GetInfoRequest',
-        {
-
-        },
-        'urn:zimbraAccount'
-    )
-    info_response = comm.send_request(info_request)
-
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
+    request_data = {}
+    info_response = zimbra_request('GetInfo', 'urn:zimbraAccount', args['email'], request_data)
 
     printer.pprint(info_response.get_response()['GetInfoResponse'])
 
 elif args['getFolder']:
 
-    if not args['email']:
-        print("Paramètre manquant : email")
-        raise Exception("Paramètre manquant : email")
+    for need in ('email','folder'):
+        if not args[need]:
+            logger.error("Paramètre manquant : "+need)
+            raise Exception("Paramètre manquant : "+need)
 
-    if not args['folder']:
-        print("Paramètre manquant : folder")
-        raise Exception("Paramètre manquant : folder")
-
-    depth=1
+    depth = 1
     if args['depth']:
         depth = int(args['depth'])
-
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
-    info_request.add_request(
-        'GetFolderRequest',
-        {
+    request_data = {
             'folder': {
                 'path': args['folder']
             },
             'depth': depth
-        },
-        'urn:zimbraMail'
-    )
-    info_response = comm.send_request(info_request)
+        }
+    info_response = zimbra_request('GetFolder', 'urn:zimbraMail', args['email'], request_data)
 
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
     print(json.dumps(info_response.get_response()['GetFolderResponse']['folder']))
-
 
 elif args['search']:
 
@@ -297,24 +227,14 @@ elif args['search']:
     else:
         query = 'in:"'+args['folder']+'"'
 
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
-    info_request.add_request(
-        'SearchRequest',
-        {
+    request_data = {
             'query': query,
             'types': "message",
             'limit': limit,
             'offset': offset
-        },
-        'urn:zimbraMail'
-    )
-    info_response = comm.send_request(info_request)
+        }
+    info_response = zimbra_request('Search', 'urn:zimbraMail', args['email'], request_data)
 
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
     print(json.dumps(info_response.get_response()['SearchResponse']))
 
 elif args['getPrefs']:
@@ -323,147 +243,92 @@ elif args['getPrefs']:
         print("Paramètre manquant : email")
         raise Exception("Paramètre manquant : email")
 
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
-    info_request.add_request(
-        'GetPrefsRequest',
-        {
+    request_data = {
             'pref': {
                 'name': 'zimbraPrefPasswordRecoveryAddress',
             }
-        },
-        'urn:zimbraAccount'
-    )
-    info_response = comm.send_request(info_request)
+        }
+    info_response = zimbra_request('GetPrefs', 'urn:zimbraAccount', args['email'], request_data)
 
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
     printer.pprint(info_response.get_response()['GetPrefsResponse'])
 
 elif args['getRights']:
 
-    if not args['email']:
-        print("Paramètre manquant : email")
-        raise Exception("Paramètre manquant : email")
+    for need in ('email','right'):
+        if not args[need]:
+            logger.error("Paramètre manquant : "+need)
+            raise Exception("Paramètre manquant : "+need)
 
-    if not args['right']:
-        print("Paramètre manquant : right")
-        raise Exception("Paramètre manquant : right")
-
-
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
-    info_request.add_request(
-        'GetRightsRequest',
-        {
+    depth = 1
+    if args['depth']:
+        depth = int(args['depth'])
+    request_data = {
             'ace': [
                 {
                     'right': args['right']
                 }
             ]
-        },
-        'urn:zimbraAccount'
-    )
-    info_response = comm.send_request(info_request)
+        }
+    info_response = zimbra_request('GetRights', 'urn:zimbraAccount', args['email'], request_data)
 
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
     print(json.dumps(info_response.get_response()['GetRightsResponse']))
 
 elif args['getMsg']:
 
-    if not args['email']:
-        print("Paramètre manquant : email")
-        raise Exception("Paramètre manquant : email")
+    for need in ('email','id'):
+        if not args[need]:
+            logger.error("Paramètre manquant : "+need)
+            raise Exception("Paramètre manquant : "+need)
 
-    if not args['id']:
-        print("Paramètre manquant : id")
-        raise Exception("Paramètre manquant : id")
-
-
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
-    info_request.add_request(
-        'GetMsgRequest',
-        {
+    depth = 1
+    if args['depth']:
+        depth = int(args['depth'])
+    request_data = {
             'm': [
                 {
                     'id': args['id']
                 }
             ]
-        },
-        'urn:zimbraMail'
-    )
-    info_response = comm.send_request(info_request)
+        }
+    info_response = zimbra_request('GetMsg', 'urn:zimbraMail', args['email'], request_data)
 
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
     printer.pprint(info_response.get_response()['GetMsgResponse'])
 
 elif args['moveMsg']:
 
-    if not args['email']:
-        print("Paramètre manquant : email")
-        raise Exception("Paramètre manquant : email")
+    for need in ('email','id','folder'):
+        if not args[need]:
+            logger.error("Paramètre manquant : "+need)
+            raise Exception("Paramètre manquant : "+need)
 
-    if not args['id']:
-        print("Paramètre manquant : id")
-        raise Exception("Paramètre manquant : id")
-
-    if not args['folder']:
-        print("Paramètre manquant : folder")
-        raise Exception("Paramètre manquant : folder")
-
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
-    info_request.add_request(
-        'ConvActionRequest',
-        {
+    depth = 1
+    if args['depth']:
+        depth = int(args['depth'])
+    request_data = {
             'action': [
                 {
                     'op': 'move,',
                     'id': args['id']
                 }
             ]
-        },
-        'urn:zimbraMail'
-    )
-    info_response = comm.send_request(info_request)
+        }
+    info_response = zimbra_request('ConvAction', 'urn:zimbraMail', args['email'], request_data)
 
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
     printer.pprint(info_response.get_response()['ConvActionResponse'])
 
 elif args['grantRights']:
 
-    if not args['email']:
-        print("Paramètre manquant : email")
-        raise Exception("Paramètre manquant : email")
+    for need in ('email','type','right'):
+        if not args[need]:
+            logger.error("Paramètre manquant : "+need)
+            raise Exception("Paramètre manquant : "+need)
 
-    if not args['type']:
-        print("Paramètre manquant : type")
-        raise Exception("Paramètre manquant : type")
-
-    if not args['right']:
-        print("Paramètre manquant : right")
-        raise Exception("Paramètre manquant : right")
-
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
+    depth = 1
+    if args['depth']:
+        depth = int(args['depth'])
 
     # On commence par révoquer les droits publics (zid="99999999-9999-9999-9999-999999999999")
-    info_request.add_request(
-        'RevokeRightsRequest',
-        {
+    request_data = {
             'ace': [
                 {
                     'gt': 'pub',
@@ -471,14 +336,10 @@ elif args['grantRights']:
                     'right': args['right']
                 }
             ]
-        },
-        'urn:zimbraAccount'
-    )
-    info_response = comm.send_request(info_request)
+        }
 
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
+    info_response = zimbra_request('RevokeRights', 'urn:zimbraAccount', args['email'], request_data)
+
     printer.pprint(info_response.get_response()['RevokeRightsResponse'])
 
     # Ajout droits
@@ -488,9 +349,7 @@ elif args['grantRights']:
             print("Paramètre manquant : for")
             raise Exception("Paramètre manquant : for")
 
-        info_request.add_request(
-            'GrantRightsRequest',
-            {
+        request_data = {
                 'ace': [
                     {
                         'gt': args['type'],
@@ -498,17 +357,13 @@ elif args['grantRights']:
                         'right': args['right']
                     }
                 ]
-            },
-            'urn:zimbraAccount'
-        )
+            }
     else:
         if not args['domain']:
             print("Paramètre manquant : domain")
             raise Exception("Paramètre manquant : domain")
 
-        info_request.add_request(
-            'GrantRightsRequest',
-            {
+        request_data = {
                 'ace': [
                     {
                         'gt': args['type'],
@@ -516,45 +371,20 @@ elif args['grantRights']:
                         'right': args['right']
                     }
                 ]
-            },
-            'urn:zimbraAccount'
-        )
-    info_response = comm.send_request(info_request)
+            }
 
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
+    info_response = zimbra_request('GrantRights', 'urn:zimbraAccount', args['email'], request_data)
+
     printer.pprint(info_response.get_response()['GrantRightsResponse'])
 
 elif args['createIdentity']:
 
-    if not args['email']:
-        print("Paramètre manquant : email")
-        raise Exception("Paramètre manquant : email")
+    for need in ('email','id','for','display'):
+        if not args[need]:
+            logger.error("Paramètre manquant : "+need)
+            raise Exception("Paramètre manquant : "+need)
 
-    if not args['for']:
-        print("Paramètre manquant : for")
-        raise Exception("Paramètre manquant : for")
-
-    if not args['id']:
-        print("Paramètre manquant : id")
-        raise Exception("Paramètre manquant : id")
-
-    if not args['display']:
-        print("Paramètre manquant : display")
-        raise Exception("Paramètre manquant : display")
-
-
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    # On utilise le format XML car ça marche pas en JSON pour createIdentity
-    info_request = comm.gen_request(token=usr_token,request_type="xml")
-
-    # On commence par révoquer les droits publics (zid="99999999-9999-9999-9999-999999999999")
-
-    info_request.add_request(
-        'CreateIdentityRequest',
-        {
+    request_data = {
             'identity': {
                 'name': args['id'],
                 'a':
@@ -573,43 +403,19 @@ elif args['createIdentity']:
                         }
                 ]
             }
-        },
-        'urn:zimbraAccount'
-    )
-    info_response = comm.send_request(info_request)
-    #printer.pprint(info_request.get_request())
+        }
+    info_response = zimbra_request('CreateIdentity', 'urn:zimbraAccount', args['email'], request_data, request_type="xml")
 
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
     printer.pprint(info_response.get_response()['CreateIdentityResponse'])
 
 elif args['modifyIdentity']:
 
-    if not args['email']:
-        print("Paramètre manquant : email")
-        raise Exception("Paramètre manquant : email")
+    for need in ('email','id','for','display'):
+        if not args[need]:
+            logger.error("Paramètre manquant : "+need)
+            raise Exception("Paramètre manquant : "+need)
 
-    if not args['for']:
-        print("Paramètre manquant : for")
-        raise Exception("Paramètre manquant : for")
-
-    if not args['id']:
-        print("Paramètre manquant : id")
-        raise Exception("Paramètre manquant : id")
-
-    if not args['display']:
-        print("Paramètre manquant : display")
-        raise Exception("Paramètre manquant : display")
-
-
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token,request_type="xml")
-
-    info_request.add_request(
-        'ModifyIdentityRequest',
-        {
+    request_data = {
             'identity': {
                 'name': args['id'],
                 'a':
@@ -628,15 +434,9 @@ elif args['modifyIdentity']:
                     }
                 ]
             }
-        },
-        'urn:zimbraAccount'
-    )
-    info_response = comm.send_request(info_request)
-    #print(str(info_request))
+        }
+    info_response = zimbra_request('ModifyIdentity', 'urn:zimbraAccount', args['email'], request_data, request_type="xml")
 
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
     printer.pprint(info_response.get_response()['ModifyIdentityResponse'])
 
 elif args['getIdentities']:
@@ -645,54 +445,23 @@ elif args['getIdentities']:
         print("Paramètre manquant : email")
         raise Exception("Paramètre manquant : email")
 
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
+    request_data = {}
+    info_response = zimbra_request('GetIdentities', 'urn:zimbraAccount', args['email'], request_data)
 
-    info_request = comm.gen_request(token=usr_token)
-
-    # On commence par révoquer les droits publics (zid="99999999-9999-9999-9999-999999999999")
-    info_request.add_request(
-        'GetIdentitiesRequest',
-        {
-
-        },
-        'urn:zimbraAccount'
-    )
-    info_response = comm.send_request(info_request)
-    #print(str(info_request))
-
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
     printer.pprint(info_response.get_response()['GetIdentitiesResponse'])
 
 elif args['deleteIdentity']:
 
-    if not args['email']:
-        print("Paramètre manquant : email")
-        raise Exception("Paramètre manquant : email")
+    for need in ('email','id'):
+        if not args[need]:
+            logger.error("Paramètre manquant : "+need)
+            raise Exception("Paramètre manquant : "+need)
 
-    if not args['id']:
-        print("Paramètre manquant : id")
-        raise Exception("Paramètre manquant : id")
-
-    (comm, usr_token) = zimbra_auth(conf, args['email'])
-
-    info_request = comm.gen_request(token=usr_token)
-
-    # On commence par révoquer les droits publics (zid="99999999-9999-9999-9999-999999999999")
-    info_request.add_request(
-        'DeleteIdentityRequest',
-        {
+    request_data = {
             'identity': {
                 'name': args['id']
             }
-        },
-        'urn:zimbraAccount'
-    )
-    info_response = comm.send_request(info_request)
-    #print(str(info_request))
+        }
+    info_response = zimbra_request('DeleteIdentity', 'urn:zimbraAccount', args['email'], request_data)
 
-    if info_response.is_fault():
-        print("Erreur %s : %s" % (info_response.is_fault(), info_response.get_fault_message()))
-        exit(-1)
     printer.pprint(info_response.get_response()['DeleteIdentityResponse'])
