@@ -283,7 +283,8 @@ elif args['getMsg']:
             'm': [
                 {
                     'id': args['id'],
-                    'raw': 1
+                    'raw': 1,
+                    'wantContent': 'original'
                 }
             ]
         }
