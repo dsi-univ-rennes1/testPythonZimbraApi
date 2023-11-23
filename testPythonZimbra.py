@@ -282,7 +282,8 @@ elif args['getMsg']:
     request_data = {
             'm': [
                 {
-                    'id': args['id']
+                    'id': args['id'],
+                    'raw': 1
                 }
             ]
         }
