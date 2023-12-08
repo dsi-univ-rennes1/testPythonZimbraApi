@@ -189,7 +189,7 @@ elif args['getFolder']:
 
     for need in ('email','folder'):
         if not args[need]:
-            logger.error("Paramètre manquant : "+need)
+            print("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
     depth = 1
