@@ -284,7 +284,11 @@ elif args['getMsg']:
                 {
                     'id': args['id'],
                     'raw': 0,
-                    'wantContent': 'original'
+                    'wantContent': 'original',
+                    'header': [
+                        { 'n': 'X-UCE-Type'},
+                        { 'n': 'X-Renater-Spam-Status'}
+                    ],
                 }
             ]
         }
