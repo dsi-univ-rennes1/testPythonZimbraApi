@@ -290,7 +290,7 @@ elif args['getMsg']:
         }
     info_response = zimbra_request('GetMsg', 'urn:zimbraMail', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['GetMsgResponse'])
+    print(json.dumps(info_response.get_response()['GetMsgResponse']))
 
 elif args['moveMsg']:
 
