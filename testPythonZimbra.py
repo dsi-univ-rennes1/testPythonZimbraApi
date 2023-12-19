@@ -13,7 +13,11 @@ import json
 # Authentification auprès du serveur Zimbra
 def zimbra_auth(conf, email):
     url = conf['soap_service_url']
-    preauth_key = conf['preauth_key']
+    domain = email.split('@')[1]
+    if domain in conf['preauth_key']:
+        preauth_key = conf['preauth_key'][domain]
+    else:
+        raise Exception("Pas de clé configurée pour le domaine " + domain)
 
     if 'timeout' in conf:
         timeout = conf['timeout']
@@ -101,7 +105,7 @@ if args['getMailCount']:
 
     for need in ('email','folder'):
         if not args[need]:
-            logger.error("Paramètre manquant : "+need)
+            print("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
     request_data = {
@@ -117,7 +121,7 @@ elif args['grantAccessFolder']:
 
     for need in ('email','for','id'):
         if not args[need]:
-            logger.error("Paramètre manquant : "+need)
+            print("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
     # ID dossier = 1 (mailbox's root folder)
@@ -258,7 +262,7 @@ elif args['getRights']:
 
     for need in ('email','right'):
         if not args[need]:
-            logger.error("Paramètre manquant : "+need)
+            print("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
     request_data = {
@@ -276,7 +280,7 @@ elif args['getMsg']:
 
     for need in ('email','id'):
         if not args[need]:
-            logger.error("Paramètre manquant : "+need)
+            print("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
     request_data = {
@@ -300,7 +304,7 @@ elif args['moveMsg']:
 
     for need in ('email','id','folder'):
         if not args[need]:
-            logger.error("Paramètre manquant : "+need)
+            print("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
      # Get folder ID
@@ -332,7 +336,7 @@ elif args['grantRights']:
 
     for need in ('email','type','right'):
         if not args[need]:
-            logger.error("Paramètre manquant : "+need)
+            print("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
     # On commence par révoquer les droits publics (zid="99999999-9999-9999-9999-999999999999")
@@ -389,7 +393,7 @@ elif args['createIdentity']:
 
     for need in ('email','id','for','display'):
         if not args[need]:
-            logger.error("Paramètre manquant : "+need)
+            print("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
     request_data = {
@@ -420,7 +424,7 @@ elif args['modifyIdentity']:
 
     for need in ('email','id','for','display'):
         if not args[need]:
-            logger.error("Paramètre manquant : "+need)
+            print("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
     request_data = {
@@ -462,7 +466,7 @@ elif args['deleteIdentity']:
 
     for need in ('email','id'):
         if not args[need]:
-            logger.error("Paramètre manquant : "+need)
+            print("Paramètre manquant : "+need)
             raise Exception("Paramètre manquant : "+need)
 
     request_data = {
@@ -478,7 +482,7 @@ elif args['createFolder']:
 
     for need in ('email', 'folder'):
         if not args[need]:
-            logger.error("Paramètre manquant : " + need)
+            print("Paramètre manquant : " + need)
             raise Exception("Paramètre manquant : " + need)
 
     request_data = {
