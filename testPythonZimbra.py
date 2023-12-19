@@ -31,6 +31,14 @@ def zimbra_auth(conf, email):
         preauth_key
     )
 
+    # Contexte EPE : si authentification échoue, ça peut être parce que le VRAI domaine de l'utilisateur est en univ-rennes1.fr
+    # dans ce cas, on essaie une authentification sur les domaines alternatifs définis dans la conf
+    if not usr_token:
+        if 'alt_domains' in conf and domain in conf['alt_domains']:
+            altdomain = conf['alt_domains'][domain]
+            altemail = email.replace('@'+domain, '@'+altdomain)
+            (comm, usr_token) = zimbra_auth(conf,altemail)
+
     return (comm, usr_token)
 
 
