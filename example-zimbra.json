@@ -1,5 +1,9 @@
 {
-  "soap_url": "https://partage.univ-rennes1.fr/service/soap",
-  "preauth_key": "XXX"
+  "soap_service_url": "https://partage.univ-rennes1.fr/service/soap",
+  "soap_admin_url": "https://partage.univ-rennes1.fr/service/admin/soap",
+  "preauth_key": {
+    "my.dom": "FIXME"
+  },
+  "timeout": 5
 }
 
