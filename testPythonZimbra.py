@@ -62,6 +62,7 @@ printer = pprint.PrettyPrinter(indent=4, width=500)
 epilog = "Exemples d'appel :\n" + \
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMailCount --email=p-salaun@univ-rennes1.fr --folder='/inbox'\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMsg --email=p-salaun@univ-rennes1.fr --id=12567\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMsg --email=p-salaun@univ-rennes1.fr --id=12567 --part=1.2\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getFolder --email=p-salaun@univ-rennes1.fr --folder='/' -depth=0\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getRights --email=p-salaun@univ-rennes1.fr --right=sendAs\n" +\
     "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=olivier.salaun@univ-rennes1.fr --folder=Inbox\n" +\
@@ -80,6 +81,7 @@ parser.add_argument('--folder', metavar='/inbox', help="dossier de l'utilisateur
 parser.add_argument('--type', metavar='dom', help="type de droits")
 parser.add_argument('--depth', metavar='0', help="profondeur de la recherche")
 parser.add_argument('--id', metavar='2', help="Identifiant d'un objet (dossier)")
+parser.add_argument('--part', metavar='2', help="Identifiant d'une partie MIME d'un mail")
 parser.add_argument('--display', metavar='2', help="Nom affiché (pour From)")
 parser.add_argument('--getMailCount', action='store_const', const=True, help="Nombre de mails dans un dossier")
 parser.add_argument('--getMsg', action='store_const', const=True, help="Accès à un message")
@@ -296,7 +298,7 @@ elif args['getMsg']:
                 {
                     'id': args['id'],
                     'raw': 0,
-                    'wantContent': 'original',
+                    'wantContent': 'both',
                     'header': [
                         { 'n': 'X-UCE-Type'},
                         { 'n': 'X-Renater-Spam-Status'}
@@ -304,6 +306,9 @@ elif args['getMsg']:
                 }
             ]
         }
+    if args['part']:
+        request_data['m'][0]['part'] = args['part']
+
     info_response = zimbra_request('GetMsg', 'urn:zimbraMail', args['email'], request_data)
 
     print(json.dumps(info_response.get_response()['GetMsgResponse']))
