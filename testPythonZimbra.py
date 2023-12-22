@@ -58,51 +58,63 @@ def zimbra_request(zimbra_action, zimbra_namespace, email, request_data, request
 
 printer = pprint.PrettyPrinter(indent=4, width=500)
 
+sample_email="user@my.dom"
+sample_conf="prod-conf.json"
 # Configuration des paramètres d'appel
 epilog = "Exemples d'appel :\n" + \
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMailCount --email=user@univ-rennes1.fr --folder='/inbox'\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMsg --email=user@univ-rennes1.fr --id=12567\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMsg --email=user@univ-rennes1.fr --id=12567 --part=1.2\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getFolder --email=user@univ-rennes1.fr --folder='/' -depth=0\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getRights --email=user@univ-rennes1.fr --right=sendAs\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=user@univ-rennes1.fr --folder=Inbox\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=ouser@univ-rennes1.fr --query='from:user@univ-avignon.fr'\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=user@univ-rennes1.fr --query='#X-Mailer:\"PHPMailer 6.0.2\"'\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --getMsg --email=user@univ-rennes1.fr --id=962266\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --moveMsg --email=user@univ-rennes1.fr --id=963827 --folder=8_Perso\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --grantAccessFolder --email=p-salaun@univ-rennes1.fr --id=2 --for=user@univ-rennes1.fr\n"
+    "./testPythonZimbra.py --conf=%s --createFolder --email=%s --folder='Quarantaine_Phishing'\n" % (sample_conf, sample_email)  +\
+    "./testPythonZimbra.py --conf=%s --createIdentity --email=%s --for=user2@dom --id=New_Avatar --display='User' | jq .\n" % (sample_conf, sample_email) +\
+    "./testPythonZimbra.py --conf=%s --deleteIdentity --email=%s --id=New_Avatar| jq .\n" % (sample_conf, sample_email) +\
+    "./testPythonZimbra.py --conf=%s --getAccountInfo --email=%s | jq .\n" % (sample_conf, sample_email) +\
+    "./testPythonZimbra.py --conf=%s --getFolder --email=%s --folder='/' -depth=0\n" % (sample_conf, sample_email)  +\
+    "./testPythonZimbra.py --conf=%s --getMailCount --email=%s --folder='/inbox'\n" % (sample_conf, sample_email) +\
+    "./testPythonZimbra.py --conf=%s --getIdentities --email=%s | jq .\n" % (sample_conf, sample_email) +\
+    "./testPythonZimbra.py --conf=%s --getInfo --email=%s | jq .\n" % (sample_conf, sample_email) +\
+    "./testPythonZimbra.py --conf=%s --getMsg --email=%s --id=12567\n" % (sample_conf, sample_email)  +\
+    "./testPythonZimbra.py --conf=%s --getMsg --email=%s --id=12567 --part=1.2\n" % (sample_conf, sample_email)  +\
+    "./testPythonZimbra.py --conf=%s --getPrefs --email=%s | jq .\n" % (sample_conf, sample_email) +\
+    "./testPythonZimbra.py --conf=%s --getRights --email=%s --right=sendAs\n" % (sample_conf, sample_email)  +\
+    "./testPythonZimbra.py --conf=%s --grantAccessFolder --email=%s --id=2 --for=user2@dom.fr\n" % (sample_conf, sample_email) +\
+    "./testPythonZimbra.py --conf=%s --grantRights --right=viewFreeBusy --type=dom --domain=my.dom --email=%s | jq .\n" % (sample_conf, sample_email) +\
+    "./testPythonZimbra.py --conf=%s --modifyIdentity --email=%s --for=user2@dom --id=New_Avatar --display='User' | jq .\n" % (sample_conf, sample_email) +\
+    "./testPythonZimbra.py --conf=%s --moveMsg --email=%s --id=963827 --folder=8_Perso\n" % (sample_conf, sample_email)  +\
+    "./testPythonZimbra.py --conf=%s --search --email=%s --folder=Inbox\n" % (sample_conf, sample_email)  +\
+    "./testPythonZimbra.py --conf=%s --search --email=%s --query='from:user@univ-avignon.fr'\n" % (sample_conf, sample_email)  +\
+    "./testPythonZimbra.py --conf=%s --search --email=%s --query='#X-Mailer:\"PHPMailer 6.0.2\"'\n" % (sample_conf, sample_email)  +\
+    "./testPythonZimbra.py --conf=%s --search --getMsg --email=%s --id=962266\n" % (sample_conf, sample_email)
+
 
 parser = argparse.ArgumentParser(description="Exploitation des boîtes mail sur la plateforme Partage", epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
-parser.add_argument('--conf', required=True, metavar='ur1-prod-zimbra.json', help="fichier de configuration JSON")
-parser.add_argument('--email', metavar='user@univ-rennes1.fr', help="adrese email de l'utilisateur")
-parser.add_argument('--domain', metavar='univ-rennes1.fr', help="domaine de messagerie")
-parser.add_argument('--for', metavar='user@univ-rennes1.fr', help="adrese email de l'autre utilisateur")
-parser.add_argument('--folder', metavar='/inbox', help="dossier de l'utilisateur")
-parser.add_argument('--type', metavar='dom', help="type de droits")
+parser.add_argument('--conf', required=True, metavar=sample_conf, help="fichier de configuration JSON")
+parser.add_argument('--createIdentity', action='store_const', const=True, help="Création d'un avatar")
+parser.add_argument('--createFolder', action='store_const', const=True, help="Création d'un dossier mail")
+parser.add_argument('--deleteIdentity', action='store_const', const=True, help="Suppression d'un avatar")
 parser.add_argument('--depth', metavar='0', help="profondeur de la recherche")
-parser.add_argument('--id', metavar='2', help="Identifiant d'un objet (dossier)")
-parser.add_argument('--part', metavar='2', help="Identifiant d'une partie MIME d'un mail")
 parser.add_argument('--display', metavar='2', help="Nom affiché (pour From)")
+parser.add_argument('--domain', metavar='univ-rennes1.fr', help="domaine de messagerie")
+parser.add_argument('--email', metavar='user@univ-rennes1.fr', help="adrese email de l'utilisateur")
+parser.add_argument('--folder', metavar='/inbox', help="dossier de l'utilisateur")
+parser.add_argument('--for', metavar='user@univ-rennes1.fr', help="adrese email de l'autre utilisateur")
+parser.add_argument('--getAccountInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
+parser.add_argument('--getIdentities', action='store_const', const=True, help="Consultation des avatars")
+parser.add_argument('--getInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
+parser.add_argument('--getFolder', action='store_const', const=True, help="Infos sur un dossier mail")
 parser.add_argument('--getMailCount', action='store_const', const=True, help="Nombre de mails dans un dossier")
 parser.add_argument('--getMsg', action='store_const', const=True, help="Accès à un message")
-parser.add_argument('--moveMsg', action='store_const', const=True, help="Déplacer un message dans un dossier")
-parser.add_argument('--getFolder', action='store_const', const=True, help="Infos sur un dossier mail")
-parser.add_argument('--createFolder', action='store_const', const=True, help="Création d'un dossier mail")
-parser.add_argument('--getAccountInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
-parser.add_argument('--getInfo', action='store_const', const=True, help="Retourne les infos sur un compte")
-parser.add_argument('--grantAccessFolder', action='store_const', const=True, help="Donne accès à un dossier")
 parser.add_argument('--getPrefs', action='store_const', const=True, help="Consultation des préférences utilisateur")
 parser.add_argument('--getRights', action='store_const', const=True, help="Consultation des droits sendAs et sendOnBehalfOf")
+parser.add_argument('--grantAccessFolder', action='store_const', const=True, help="Donne accès à un dossier")
 parser.add_argument('--grantRights', action='store_const', const=True, help="Modif droits")
-parser.add_argument('--right', metavar='sendAs', help="tpe de droit (sendAs ou SendOnBehalfOf)")
-parser.add_argument('--createIdentity', action='store_const', const=True, help="Création d'un avatar")
-parser.add_argument('--modifyIdentity', action='store_const', const=True, help="Modification d'un avatar")
-parser.add_argument('--deleteIdentity', action='store_const', const=True, help="Suppression d'un avatar")
-parser.add_argument('--getIdentities', action='store_const', const=True, help="Consultation des avatars")
-parser.add_argument('--search', action='store_const', const=True, help="Liste des mails dans un dossier (si --folder spécifié) ou recherche (si --query spécifié)")
-parser.add_argument('--query', metavar='0', help="requête (pour recherche)")
-parser.add_argument('--offset', metavar='0', help="Offset (pour recherche)")
+parser.add_argument('--id', metavar='2', help="Identifiant d'un objet (dossier)")
 parser.add_argument('--limit', metavar='0', help="Limite (pour recherche)")
+parser.add_argument('--modifyIdentity', action='store_const', const=True, help="Modification d'un avatar")
+parser.add_argument('--moveMsg', action='store_const', const=True, help="Déplacer un message dans un dossier")
+parser.add_argument('--offset', metavar='0', help="Offset (pour recherche)")
+parser.add_argument('--part', metavar='2', help="Identifiant d'une partie MIME d'un mail")
+parser.add_argument('--query', metavar='0', help="requête (pour recherche)")
+parser.add_argument('--right', metavar='sendAs', help="tpe de droit (sendAs ou SendOnBehalfOf)")
+parser.add_argument('--search', action='store_const', const=True, help="Liste des mails dans un dossier (si --folder spécifié) ou recherche (si --query spécifié)")
+parser.add_argument('--type', metavar='dom', help="type de droits")
 
 
 args = vars(parser.parse_args())
@@ -169,7 +181,7 @@ elif args['grantAccessFolder']:
         }
     info_request = zimbra_request('SendShareNotification', 'urn:zimbraMail', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['SendShareNotificationResponse'])
+    print(json.dumps(info_response.get_response()['SendShareNotificationResponse']))
 
 
 elif args['getAccountInfo']:
@@ -186,7 +198,7 @@ elif args['getAccountInfo']:
         }
     info_response = zimbra_request('GetAccountInfo', 'urn:zimbraAccount', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['GetAccountInfoResponse'])
+    print(json.dumps(info_response.get_response()['GetAccountInfoResponse']))
 
 elif args['getInfo']:
 
@@ -197,7 +209,7 @@ elif args['getInfo']:
     request_data = {}
     info_response = zimbra_request('GetInfo', 'urn:zimbraAccount', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['GetInfoResponse'])
+    print(json.dumps(info_response.get_response()['GetInfoResponse']))
 
 elif args['getFolder']:
 
@@ -266,7 +278,7 @@ elif args['getPrefs']:
         }
     info_response = zimbra_request('GetPrefs', 'urn:zimbraAccount', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['GetPrefsResponse'])
+    print(json.dumps(info_response.get_response()['GetPrefsResponse']))
 
 elif args['getRights']:
 
@@ -343,7 +355,7 @@ elif args['moveMsg']:
         }
     info_response = zimbra_request('MsgAction', 'urn:zimbraMail', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['MsgActionResponse'])
+    print(json.dumps(info_response.get_response()['MsgActionResponse']))
 
 elif args['grantRights']:
 
@@ -365,10 +377,7 @@ elif args['grantRights']:
 
     info_response = zimbra_request('RevokeRights', 'urn:zimbraAccount', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['RevokeRightsResponse'])
-
     # Ajout droits
-    info_request = comm.gen_request(token=usr_token)
     if args['type'] == "usr":
         if not args['for']:
             print("Paramètre manquant : for")
@@ -400,7 +409,7 @@ elif args['grantRights']:
 
     info_response = zimbra_request('GrantRights', 'urn:zimbraAccount', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['GrantRightsResponse'])
+    print(json.dumps(info_response.get_response()['GrantRightsResponse']))
 
 elif args['createIdentity']:
 
@@ -414,14 +423,14 @@ elif args['createIdentity']:
                 'name': args['id'],
                 'a':
                     [
-                        # {
-                        #     'name': 'zimbraPrefIdentityName',
-                        #     '_content': args['id']
-                        # },
-                        # {
-                        #     'name': 'zimbraPrefFromDisplay',
-                        #     '_content': args['display']
-                        # },
+                        {
+                            'name': 'zimbraPrefIdentityName',
+                            '_content': args['id']
+                        },
+                        {
+                            'name': 'zimbraPrefFromDisplay',
+                            '_content': args['display']
+                        },
                         {
                             'name': 'zimbraPrefFromAddress',
                             '_content': args['for']
@@ -431,7 +440,7 @@ elif args['createIdentity']:
         }
     info_response = zimbra_request('CreateIdentity', 'urn:zimbraAccount', args['email'], request_data, request_type="xml")
 
-    printer.pprint(info_response.get_response()['CreateIdentityResponse'])
+    print(json.dumps(info_response.get_response()['CreateIdentityResponse']))
 
 elif args['modifyIdentity']:
 
@@ -462,7 +471,7 @@ elif args['modifyIdentity']:
         }
     info_response = zimbra_request('ModifyIdentity', 'urn:zimbraAccount', args['email'], request_data, request_type="xml")
 
-    printer.pprint(info_response.get_response()['ModifyIdentityResponse'])
+    print(json.dumps(info_response.get_response()['ModifyIdentityResponse']))
 
 elif args['getIdentities']:
 
@@ -473,7 +482,7 @@ elif args['getIdentities']:
     request_data = {}
     info_response = zimbra_request('GetIdentities', 'urn:zimbraAccount', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['GetIdentitiesResponse'])
+    print(json.dumps(info_response.get_response()['GetIdentitiesResponse']))
 
 elif args['deleteIdentity']:
 
@@ -489,7 +498,7 @@ elif args['deleteIdentity']:
         }
     info_response = zimbra_request('DeleteIdentity', 'urn:zimbraAccount', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['DeleteIdentityResponse'])
+    print(json.dumps(info_response.get_response()['DeleteIdentityResponse']))
 
 elif args['createFolder']:
 
@@ -506,4 +515,4 @@ elif args['createFolder']:
                 }
     info_response = zimbra_request('CreateFolder', 'urn:zimbraMail', args['email'], request_data)
 
-    printer.pprint(info_response.get_response()['CreateFolderResponse'])
+    print(json.dumps(info_response.get_response()['CreateFolderResponse']))
