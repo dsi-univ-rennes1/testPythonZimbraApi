@@ -60,23 +60,23 @@ printer = pprint.PrettyPrinter(indent=4, width=500)
 
 # Configuration des paramètres d'appel
 epilog = "Exemples d'appel :\n" + \
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMailCount --email=p-salaun@univ-rennes1.fr --folder='/inbox'\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMsg --email=p-salaun@univ-rennes1.fr --id=12567\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMsg --email=p-salaun@univ-rennes1.fr --id=12567 --part=1.2\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getFolder --email=p-salaun@univ-rennes1.fr --folder='/' -depth=0\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getRights --email=p-salaun@univ-rennes1.fr --right=sendAs\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=olivier.salaun@univ-rennes1.fr --folder=Inbox\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=olivier.salaun@univ-rennes1.fr --query='from:cecile.vincent@univ-avignon.fr'\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=olivier.salaun@univ-rennes1.fr --query='#X-Mailer:\"PHPMailer 6.0.2\"'\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --getMsg --email=olivier.salaun@univ-rennes1.fr --id=962266\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --moveMsg --email=olivier.salaun@univ-rennes1.fr --id=963827 --folder=8_Perso\n" +\
-    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --grantAccessFolder --email=p-salaun@univ-rennes1.fr --id=2 --for=olivier.salaun@univ-rennes1.fr\n"
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMailCount --email=user@univ-rennes1.fr --folder='/inbox'\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMsg --email=user@univ-rennes1.fr --id=12567\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getMsg --email=user@univ-rennes1.fr --id=12567 --part=1.2\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getFolder --email=user@univ-rennes1.fr --folder='/' -depth=0\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --getRights --email=user@univ-rennes1.fr --right=sendAs\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=user@univ-rennes1.fr --folder=Inbox\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=ouser@univ-rennes1.fr --query='from:user@univ-avignon.fr'\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --email=user@univ-rennes1.fr --query='#X-Mailer:\"PHPMailer 6.0.2\"'\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --search --getMsg --email=user@univ-rennes1.fr --id=962266\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --moveMsg --email=user@univ-rennes1.fr --id=963827 --folder=8_Perso\n" +\
+    "./testPythonZimbra.py --conf=ur1-prod-zimbra.json --grantAccessFolder --email=p-salaun@univ-rennes1.fr --id=2 --for=user@univ-rennes1.fr\n"
 
 parser = argparse.ArgumentParser(description="Exploitation des boîtes mail sur la plateforme Partage", epilog=epilog, formatter_class=argparse.RawDescriptionHelpFormatter)
 parser.add_argument('--conf', required=True, metavar='ur1-prod-zimbra.json', help="fichier de configuration JSON")
-parser.add_argument('--email', metavar='jean.kermarrec@univ-rennes1.fr', help="adrese email de l'utilisateur")
+parser.add_argument('--email', metavar='user@univ-rennes1.fr', help="adrese email de l'utilisateur")
 parser.add_argument('--domain', metavar='univ-rennes1.fr', help="domaine de messagerie")
-parser.add_argument('--for', metavar='anne.guernic@univ-rennes1.fr', help="adrese email de l'autre utilisateur")
+parser.add_argument('--for', metavar='user@univ-rennes1.fr', help="adrese email de l'autre utilisateur")
 parser.add_argument('--folder', metavar='/inbox', help="dossier de l'utilisateur")
 parser.add_argument('--type', metavar='dom', help="type de droits")
 parser.add_argument('--depth', metavar='0', help="profondeur de la recherche")
