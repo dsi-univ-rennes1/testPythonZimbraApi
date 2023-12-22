@@ -16,7 +16,7 @@ Documentation de python-zimbra : https://github.com/Zimbra-Community/python-zimb
 ## Installation 
 
 ```
-git clone git@github.com:salaun-urennes1/testPythonZimbraApi.git
+git clone git@github.com:dsi-univ-rennes1/testPythonZimbraApi.git
 cd testPythonZimbraApi
 python3.5 -m venv venv
 venv/bin/pip install --requirement requirements.txt
